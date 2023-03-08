@@ -42,3 +42,17 @@ def get_ingame_input_artis():
                              "chalice",
                              "compass", "rainstick", "beak", "lens", "medallion", "gusset", "ankh", "brooch", "vial",
                              "necklace", "totem", "cube"]
+
+
+def get_full_leaderboard_element_list():
+    return ["BOOK_OF_BASAN", "LIGHT_OF_EGGENDIL", "TACHYON_DEFLECTOR", "SHIP_IN_A_BOTTLE", "TITANIUM_ACTUATOR",
+     "DILITHIUM_MONOCLE", "QUANTUM_METRONOME", "PHOENIX_FEATHER", "THE_CHALICE", "INTERSTELLAR_COMPASS",
+     "CARVED_RAINSTICK", "BEAK_OF_MIDAS", "MERCURYS_LENS", "NEODYMIUM_MEDALLION", "ORNATE_GUSSET",
+     "TUNGSTEN_ANKH", "AURELIAN_BROOCH", "VIAL_MARTIAN_DUST", "DEMETERS_NECKLACE", "LUNAR_TOTEM",
+     "PUZZLE_CUBE","CLARITY_STONE","LUNAR_STONE","PROPHECY_STONE","LIFE_STONE","QUANTUM_STONE",
+    "DILITHIUM_STONE","SOUL_STONE","TERRA_STONE","TACHYON_STONE","SHELL_STONE","GOLD_METEORITE","TAU_CETI_GEODE","SOLAR_TITANIUM"],\
+    ["bob", "light", "deflector", "siab", "actuator", "monocle", "metronome", "feather",
+                      "chalice",
+                      "compass", "rainstick", "beak", "lens", "medallion", "gusset", "ankh", "brooch", "vial",
+                      "necklace", "totem", "cube","clarity","lunar","prophecy","life","quantum","dilithium",
+     "soul","terra","tachyon","shell","gold","tau","titanium"]

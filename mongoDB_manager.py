@@ -13,8 +13,13 @@ class mongo_manager:
 
     def __init__(self,conn_string):
         try:
-            conn_string = open("./node_modules/s.txt", "r").read()
-            self.client = MongoClient(conn_string)
+            #TO BE CHANGED ON REPLIT
+            lines = open("conf.txt", "r").readlines()
+            user = lines[0].strip()
+            pssw = lines[1].strip()
+            conn = "mongodb+srv://" + user + ":" + pssw + "@eggcluster.sbrsi.mongodb.net/?retryWrites=true&w=majority"
+
+            self.client = MongoClient(conn)
         except:
             print("Something went wrong with the database connection")
 
@@ -138,6 +143,20 @@ class mongo_manager:
             return big_dict
         except Exception as e:
             print(e)
+
+    def load_updated_document_by_name_test(self, leaderboard_updated,name):
+        try:
+            self.__get_leaderboard_coll_test__().update_one({"name":name},{"$set": {"content":leaderboard_updated}})
+        except Exception as e:
+            print(e)
+
+    def __get_leaderboard_coll_test__(self):
+        try:
+            mydb = self.client["db_leaderboard"]
+            mycol = mydb["leaderboard_old"]
+            return mycol
+        except:
+            print("Something went wrong with the database connection")
 
     def get_leaderboard_by_name(self,name):
         try:

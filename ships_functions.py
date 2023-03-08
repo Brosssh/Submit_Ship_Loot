@@ -1,7 +1,9 @@
-from tqdm.auto import tqdm
+from concurrent.futures import as_completed
+
+from tqdm import tqdm
 from google.protobuf.json_format import MessageToJson, MessageToDict
 import copy
-
+from concurrent.futures.thread import ThreadPoolExecutor
 import utility
 
 
@@ -103,6 +105,7 @@ def check_if_same_total(leaderboard,current_el):
             for sub_el in current_el:
                 leaderboard[pos][sub_el].append(current_el[sub_el])
             done_something=True
+            return leaderboard, done_something
     return leaderboard, done_something
 
 
@@ -132,7 +135,7 @@ def check_if_beetween_total(leaderboard,current_el):
 
 
 def check_and_update_file(old_leadberboard_l_dict,array_new_ingr):
-    new_leaderboard_l_dict=old_leadberboard_l_dict
+    new_leaderboard_l_dict=copy.deepcopy(old_leadberboard_l_dict)
     array_new_ingr=sorted(array_new_ingr, key = lambda item: item['count']['total'])
     for el in array_new_ingr:
         new_leaderboard_l_dict,done_something=check_if_same_total(new_leaderboard_l_dict,el)
@@ -274,20 +277,37 @@ def artifacts(old_leaderboard_l_dict,new_ships,arti_name):
 
     return check_and_update_file(old_leaderboard_l_dict,array_arti_new)
 
-def update_leaderboard(old_leaderboard_dict,new_ships):
-    old_leaderboard_dict["gold"]=(ingredients(old_leaderboard_dict["gold"],new_ships,"GOLD_METEORITE"))
-    old_leaderboard_dict["tau"] = (ingredients(old_leaderboard_dict["tau"], new_ships, "TAU_CETI_GEODE"))
-    old_leaderboard_dict["titanium"] = (ingredients(old_leaderboard_dict["titanium"], new_ships, "SOLAR_TITANIUM"))
 
-    stones_array=["CLARITY_STONE","LUNAR_STONE","PROPHECY_STONE","LIFE_STONE","QUANTUM_STONE","DILITHIUM_STONE","SOUL_STONE","TERRA_STONE","TACHYON_STONE","SHELL_STONE"]
-    for el in stones_array:
-        old_leaderboard_dict[el.split("_")[0].lower()] = (stones(old_leaderboard_dict[el.split("_")[0].lower()], new_ships, el))
+def insert_new_ships(old_leaderboard_element, new_ships, el_name):
+    if el_name in ["GOLD_METEORITE","TAU_CETI_GEODE","SOLAR_TITANIUM"]:
+        return ingredients(old_leaderboard_element, new_ships, el_name)
+    if el_name.split("_")[1]=="STONE":
+        return stones(old_leaderboard_element, new_ships, el_name)
+    if el_name in utility.get_ingame_input_artis()[0]:
+        return artifacts(old_leaderboard_element, new_ships, el_name)
+    return False
 
-    ingame, coll_name = utility.get_ingame_input_artis()
-    for i in range(len(utility.get_ingame_input_artis()[0])):
-        old_leaderboard_dict[coll_name[i]] = (artifacts(old_leaderboard_dict[coll_name[i]], new_ships, ingame[i]))
+def multi_thread(mongo,new_ships):
+    with tqdm(total=34) as pbar:
+        with ThreadPoolExecutor(max_workers=34) as executor:
+            elements=utility.get_full_leaderboard_element_list()
+            futures = [executor.submit(update_leaderboard_element,mongo,new_ships,elements[1][i],elements[0][i]) for i in range(len(elements[0]))]
+            for future in as_completed(futures):
+                result = future.result()
+                pbar.update(1)
+        return True
 
-    return old_leaderboard_dict
+def update_leaderboard_element(mongo, new_ships, leaderboard_name, el_name):
+    try:
+        old_leaderboard_element=mongo.__get_leaderboard_coll__().find_one({"name":leaderboard_name})["content"]
+        new_leaderboard=insert_new_ships(old_leaderboard_element,new_ships,el_name)
+        if new_leaderboard is not False and new_leaderboard!=old_leaderboard_element:
+            mongo.load_updated_document_by_name(new_leaderboard, leaderboard_name)
+    except Exception as e:
+        return e
 
-################################################################################
+
+def update_leaderboard(mongo,new_ships):
+    multi_thread(mongo,new_ships)
+
 

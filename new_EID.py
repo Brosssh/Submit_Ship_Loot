@@ -41,17 +41,14 @@ def insert_EID(mongo):
         mongo.insert_full_user_ships(final_dict)
         print("Data successfully loaded!")
     else:
-        new_ships = mongo.update_and_return_user_ships(final_dict,
-                                                       encryptedEID)
+        new_ships = mongo.update_and_return_user_ships(final_dict,encryptedEID)
         if new_ships is not None:
             print("Data successfully updated!")
         else:
             print("Your ships are already up to date")
 
+
     if new_ships is not None:
         print("\nUpdating the leaderboard with your ships \n")
-        leaderboard_dict = mongo.build_full_leaderboard()
-        leaderboard_updated = update_leaderboard(leaderboard_dict, new_ships)
-        for el in tqdm(leaderboard_updated):
-            mongo.load_updated_document_by_name(leaderboard_updated[el], el)
+        update_leaderboard(mongo, new_ships)
         print("\nThanks for your submission :)\n")
